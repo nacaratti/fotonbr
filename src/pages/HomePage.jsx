@@ -2,11 +2,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Aperture, Users, Library, Zap, MessageSquare, Newspaper, ArrowRight } from 'lucide-react';
+import { Aperture, Users, Library, Zap, MessageSquare, Newspaper, ArrowRight, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
 const FeatureCard = ({ icon, title, description, delay }) => (
   <motion.div 
-    className="bg-card p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col items-center text-center"
+    className="bg-card p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col items-center text-center h-full"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: delay * 0.1 }}
@@ -15,9 +16,40 @@ const FeatureCard = ({ icon, title, description, delay }) => (
       {icon}
     </div>
     <h3 className="text-xl font-semibold mb-2 text-card-foreground">{title}</h3>
-    <p className="text-muted-foreground text-sm">{description}</p>
+    <p className="text-muted-foreground text-sm flex-grow">{description}</p>
   </motion.div>
 );
+
+const NewsArticleCard = ({ title, source, date, link, delay, imagePlaceholder }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: delay * 0.15 }}
+  >
+    <Card className="overflow-hidden h-full flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-lg leading-tight">{title}</CardTitle>
+        <CardDescription>{source} - {date}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        {imagePlaceholder && <div className="mb-4">
+          <img  alt={title} className="rounded-md w-full h-40 object-cover bg-muted" src="https://images.unsplash.com/photo-1694388001616-1176f534d72f" />
+        </div>}
+        <p className="text-sm text-muted-foreground">
+          Descubra os últimos avanços e notícias sobre este tópico fascinante.
+        </p>
+      </CardContent>
+      <CardFooter>
+        <Button variant="outline" asChild className="w-full">
+          <a href={link} target="_blank" rel="noopener noreferrer">
+            Leia mais <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+      </CardFooter>
+    </Card>
+  </motion.div>
+);
+
 
 const HomePage = () => {
   const features = [
@@ -27,6 +59,12 @@ const HomePage = () => {
     { icon: <Zap size={28} />, title: "Plataforma Colaborativa", description: "Conecte-se com pesquisadores, instituições e empresas do setor." },
     { icon: <MessageSquare size={28} />, title: "Fórum Interativo", description: "Participe de discussões, tire dúvidas e compartilhe suas ideias com a comunidade." },
     { icon: <Newspaper size={28} />, title: "Newsletter", description: "Mantenha-se atualizado com as últimas notícias, eventos e oportunidades na fotônica." },
+  ];
+
+  const newsItems = [
+    { title: "Avanços em Lasers de Fibra Óptica para Telecomunicações", source: "Revista Fotônica Hoje", date: "20/05/2025", link: "#", imagePlaceholder: "Laser de fibra óptica em um laboratório moderno"},
+    { title: "Nova Técnica de Imagem Biofotônica Revoluciona Diagnósticos", source: "Portal Ciência BR", date: "18/05/2025", link: "#", imagePlaceholder: "Equipamento de imagem biofotônica avançado"},
+    { title: "Brasil Sedia Conferência Internacional de Fotônica Integrada", source: "Agência Foton", date: "15/05/2025", link: "#", imagePlaceholder: "Palestrante em uma conferência de fotônica"},
   ];
 
   return (
@@ -56,15 +94,15 @@ const HomePage = () => {
             Sua plataforma central para equipamentos, projetos, conhecimento e colaboração no ecossistema brasileiro de fotônica.
           </motion.p>
           <motion.div 
-            className="space-x-4"
+            className="space-y-4 sm:space-y-0 sm:space-x-4"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.6 }}
           >
-            <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform transform hover:scale-105">
+            <Button size="lg" asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform transform hover:scale-105">
               <Link to="/equipamentos">Explorar Equipamentos <ArrowRight className="ml-2 h-5 w-5" /></Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="shadow-lg transition-transform transform hover:scale-105">
+            <Button size="lg" variant="outline" asChild className="w-full sm:w-auto shadow-lg transition-transform transform hover:scale-105">
               <Link to="/projetos">Ver Projetos</Link>
             </Button>
           </motion.div>
@@ -85,6 +123,30 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* News Section */}
+      <section className="py-16 md:py-24 bg-muted/20">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-foreground">Notícias e Destaques em Fotônica</h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Fique por dentro das últimas novidades e avanços no mundo da fotônica.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {newsItems.map((item, index) => (
+              <NewsArticleCard 
+                key={index} 
+                title={item.title} 
+                source={item.source} 
+                date={item.date} 
+                link={item.link} 
+                delay={index}
+                imagePlaceholder={item.imagePlaceholder}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {/* Call to Action Section */}
       <section className="py-16 md:py-24 bg-muted/50">
@@ -113,7 +175,7 @@ const HomePage = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl transition-transform transform hover:scale-105">
+            <Button size="lg" asChild className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl transition-transform transform hover:scale-105">
               <Link to="/signup">Criar Conta <ArrowRight className="ml-2 h-5 w-5" /></Link>
             </Button>
           </motion.div>
@@ -148,7 +210,7 @@ const HomePage = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
             >
-              <img  alt="Abstract representation of photonic connections" className="w-full h-full object-contain opacity-75" src="https://images.unsplash.com/photo-1697706079319-a7217447cb36" />
+              <img  alt="Abstract representation of photonic connections" className="w-full h-full object-contain opacity-75" src="https://images.unsplash.com/photo-1549925245-f20a1bac6454" />
             </motion.div>
           </div>
         </div>
