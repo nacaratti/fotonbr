@@ -8,14 +8,14 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true); // Initialize loading to true
+  const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async (userId) => {
     if (!userId) {
       setProfile(null);
-      // Do not set loading to false here as the overall auth state might still be loading
       return null; 
     }
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -23,12 +23,13 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .single();
       
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error.message);
         setProfile(null);
         return null;
       }
-      setProfile(data); // data can be null if no profile found, which is handled
+      
+      setProfile(data);
       return data;
     } catch (e) {
       console.error('Exception fetching profile:', e.message);
@@ -38,82 +39,137 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const initializeAuth = async () => {
-    if (!isMounted) return;
-    setLoading(true);
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const initializeAuth = async () => {
+      try {
+        // Buscar sessão atual
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (sessionError) {
-        console.error("Error getting session:", sessionError.message);
+        if (sessionError) {
+          console.error("Error getting session:", sessionError.message);
+        }
+
+        const currentUser = session?.user ?? null;
+        
+        if (isMounted) {
+          setUser(currentUser);
+          
+          if (currentUser) {
+            await fetchUserProfile(currentUser.id);
+          } else {
+            setProfile(null);
+          }
+          
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error("Initialization error:", e.message);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
-      const currentUser = session?.user ?? null;
-      if (isMounted) setUser(currentUser);
+    // Listener para mudanças no estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
 
-      if (currentUser) {
-        await fetchUserProfile(currentUser.id);
-      } else {
-        if (isMounted) setProfile(null);
+        console.log('Auth state changed:', event);
+        
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+
+        if (currentUser && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          await fetchUserProfile(currentUser.id);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (e) {
-      console.error("Initialization error:", e.message);
-    } finally {
-      if (isMounted) setLoading(false);  // <- Adicione isso
-    }
-  };
+    );
 
-  initializeAuth();
+    // Inicializar
+    initializeAuth();
 
-  return () => {
-    isMounted = false;
-  };
-}, []);
-
+    // Cleanup
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const value = {
     signUp: async (data) => {
       const { email, password, options } = data;
-      // Note: After user signs up, their profile will have role 'user' by default.
-      // To make a user an admin, manually update their 'role' to 'admin' in the Supabase Studio table 'profiles'.
       return supabase.auth.signUp({ email, password, options });
     },
+    
     signIn: async (data) => {
+      try {
         setLoading(true);
         const result = await supabase.auth.signInWithPassword(data);
-        if (result.data.user) {
-            await fetchUserProfile(result.data.user.id);
-        }
-        // setLoading(false) will be handled by onAuthStateChange or initializeAuth
+        
+        // O onAuthStateChange vai lidar com o resto
         return result;
+      } catch (error) {
+        setLoading(false);
+        throw error;
+      }
     },
+    
     signOut: async () => {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      // User and profile will be set to null by onAuthStateChange
-      // setLoading(false) will be handled by onAuthStateChange
-      return { error };
+      try {
+        setLoading(true);
+        const { error } = await supabase.auth.signOut();
+        
+        // O onAuthStateChange vai limpar user e profile
+        return { error };
+      } catch (error) {
+        setLoading(false);
+        throw error;
+      }
     },
-    user,
-    profile,
-    loading, // Expose loading state
+    
     updateUserProfile: async (updatedProfileData) => {
-        if (!user) return { error: { message: "User not authenticated" } };
+      if (!user) return { error: { message: "User not authenticated" } };
+      
+      try {
         setLoading(true);
         const { data, error } = await supabase
-            .from('profiles')
-            .update(updatedProfileData)
-            .eq('id', user.id)
-            .select()
-            .single();
+          .from('profiles')
+          .update(updatedProfileData)
+          .eq('id', user.id)
+          .select()
+          .single();
+          
         if (!error && data) {
-            setProfile(data);
+          setProfile(data);
         }
-        setLoading(false);
+        
         return { data, error };
-    }
+      } catch (error) {
+        return { error };
+      } finally {
+        setLoading(false);
+      }
+    },
+    
+    // Função auxiliar para refresh do profile
+    refreshProfile: async () => {
+      if (user) {
+        return await fetchUserProfile(user.id);
+      }
+      return null;
+    },
+    
+    user,
+    profile,
+    loading
   };
 
   return (
