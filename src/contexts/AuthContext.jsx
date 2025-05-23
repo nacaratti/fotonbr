@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false); // Flag para controlar se já inicializou
 
   const fetchUserProfile = useCallback(async (userId) => {
     if (!userId) {
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         .single();
       
       if (error) {
-        if (error.code === 'PGRST116') { // "PGRST116" means "0 rows" were returned, which is not an "error" for profile fetching, just means no profile exists yet.
+        if (error.code === 'PGRST116') {
           setProfile(null); 
         } else {
           console.error('Error fetching profile:', error.message);
@@ -42,10 +43,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
-    const processAuthStateChange = async (sessionUser) => {
+    const processAuthStateChange = async (sessionUser, isInitialLoad = false) => {
       if (!isMounted) return;
+
+      // Só mostra loading após a inicialização, exceto na primeira carga
+      if (!isInitialLoad && initialized) {
+        setLoading(true);
+      }
 
       setUser(sessionUser);
       if (sessionUser) {
@@ -56,19 +61,23 @@ export const AuthProvider = ({ children }) => {
       
       if (isMounted) {
         setLoading(false);
+        if (isInitialLoad) {
+          setInitialized(true);
+        }
       }
     };
     
     // Initial session check
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!isMounted) return;
-      await processAuthStateChange(session?.user ?? null);
+      await processAuthStateChange(session?.user ?? null, true); // true = é carga inicial
     }).catch(error => {
       console.error("Error in initial getSession:", error);
       if (isMounted) {
         setUser(null);
         setProfile(null);
         setLoading(false);
+        setInitialized(true);
       }
     });
 
@@ -76,8 +85,7 @@ export const AuthProvider = ({ children }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
-        setLoading(true); 
-        await processAuthStateChange(session?.user ?? null);
+        await processAuthStateChange(session?.user ?? null, false); // false = não é carga inicial
       }
     );
 
@@ -94,14 +102,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const { email, password, options } = data;
       const result = await supabase.auth.signUp({ email, password, options });
-      // onAuthStateChange will eventually set loading to false
       if(result.error) setLoading(false);
       return result;
     },
     signIn: async (data) => {
       setLoading(true); 
       const result = await supabase.auth.signInWithPassword(data);
-      // onAuthStateChange will eventually set loading to false
       if (result.error) { 
         setLoading(false);
       }
@@ -110,7 +116,6 @@ export const AuthProvider = ({ children }) => {
     signOut: async () => {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
-      // onAuthStateChange will eventually set loading to false
       if (error) { 
         setLoading(false);
       }
@@ -119,6 +124,9 @@ export const AuthProvider = ({ children }) => {
     user,
     profile,
     loading,
+    initialized, // Expõe se já foi inicializado
+    // Propriedade computada para facilitar uso no navbar
+    isAuthReady: initialized && !loading,
     updateUserProfile: async (updatedProfileData) => {
       if (!user) return { error: { message: "User not authenticated" } };
       setLoading(true);
