@@ -124,21 +124,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, [fetchUserProfile]);
 
-  // 🔄 Força verificação da sessão ao focar na aba
-  useEffect(() => {
-    const onFocus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id !== user?.id) {
-        console.log("↻ Sessão revalidada ao focar na aba");
-        await fetchUserProfile(session?.user?.id);
-        setUser(session?.user ?? null);
-      }
-    };
-
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, [user, fetchUserProfile]);
-
   const value = {
     signUp: async (data) => {
       const { email, password, options } = data;
