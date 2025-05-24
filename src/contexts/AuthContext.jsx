@@ -16,24 +16,22 @@ export const AuthProvider = ({ children }) => {
       setProfile(null);
       return null;
     }
-
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-
+      
       if (error) {
         if (error.code === 'PGRST116') {
-          setProfile(null);
+          setProfile(null); 
         } else {
           console.error('Error fetching profile:', error.message);
           setProfile(null);
         }
         return null;
       }
-
       setProfile(data);
       return data;
     } catch (e) {
@@ -47,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
     let authSubscription = null;
 
-    const processAuthStateChange = async (sessionUser) => {
+    const processAuthStateChange = async (sessionUser, isInitialLoad = false) => {
       if (!isMounted) return;
 
       setUser(sessionUser);
@@ -56,15 +54,18 @@ export const AuthProvider = ({ children }) => {
       } else {
         setProfile(null);
       }
-
+      
       if (isMounted) {
         setLoading(false);
-        setInitialized(true);  // ← sempre finaliza a inicialização
+        if (isInitialLoad) {
+          setInitialized(true);
+        }
       }
     };
 
     const initializeAuth = async () => {
       try {
+        // Timeout simples para evitar loading infinito
         const timeoutId = setTimeout(() => {
           if (isMounted && !initialized) {
             console.warn('Auth initialization taking too long, forcing completion');
@@ -76,16 +77,18 @@ export const AuthProvider = ({ children }) => {
         }, 3000);
 
         const { data: { session }, error } = await supabase.auth.getSession();
-
+        
+        // Limpa o timeout se conseguiu obter a sessão
         clearTimeout(timeoutId);
-
+        
         if (error) {
           console.error("Error getting session:", error);
         }
 
         if (isMounted) {
-          await processAuthStateChange(session?.user ?? null);
+          await processAuthStateChange(session?.user ?? null, true);
         }
+        
       } catch (error) {
         console.error("Initialization error:", error);
         if (isMounted) {
@@ -97,22 +100,25 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
+    // Configurar listener de mudanças de auth - APENAS UMA VEZ
     const setupAuthListener = () => {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (!isMounted) return;
-
+          
           console.log('Auth event:', event);
-
+          
+          // Só processa eventos importantes
           if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'].includes(event)) {
-            await processAuthStateChange(session?.user ?? null);
+            await processAuthStateChange(session?.user ?? null, false);
           }
         }
       );
-
+      
       authSubscription = subscription;
     };
 
+    // Inicializar tudo
     setupAuthListener();
     initializeAuth();
 
@@ -122,7 +128,7 @@ export const AuthProvider = ({ children }) => {
         authSubscription.unsubscribe();
       }
     };
-  }, [fetchUserProfile]);
+  }, [fetchUserProfile]); // Removemos dependências desnecessárias
 
   const value = {
     signUp: async (data) => {
@@ -135,7 +141,7 @@ export const AuthProvider = ({ children }) => {
         throw error;
       }
     },
-
+    
     signIn: async (data) => {
       try {
         const result = await supabase.auth.signInWithPassword(data);
@@ -145,7 +151,7 @@ export const AuthProvider = ({ children }) => {
         throw error;
       }
     },
-
+    
     signOut: async () => {
       try {
         const { error } = await supabase.auth.signOut();
@@ -155,10 +161,10 @@ export const AuthProvider = ({ children }) => {
         throw error;
       }
     },
-
+    
     updateUserProfile: async (updatedProfileData) => {
       if (!user) return { error: { message: "User not authenticated" } };
-
+      
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -166,20 +172,20 @@ export const AuthProvider = ({ children }) => {
           .eq('id', user.id)
           .select()
           .single();
-
+        
         if (!error && data) {
-          setProfile(data);
+          setProfile(data); 
         } else if (error) {
           console.error("Error updating profile:", error.message);
         }
-
+        
         return { data, error };
       } catch (error) {
         console.error('UpdateProfile error:', error);
         return { error };
       }
     },
-
+    
     user,
     profile,
     loading,
