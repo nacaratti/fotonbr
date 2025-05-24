@@ -16,22 +16,24 @@ export const AuthProvider = ({ children }) => {
       setProfile(null);
       return null;
     }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (error) {
         if (error.code === 'PGRST116') {
-          setProfile(null); 
+          setProfile(null);
         } else {
           console.error('Error fetching profile:', error.message);
           setProfile(null);
         }
         return null;
       }
+
       setProfile(data);
       return data;
     } catch (e) {
@@ -43,15 +45,10 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
-    let initializationTimeout;
+    let authSubscription = null;
 
-    const processAuthStateChange = async (sessionUser, isInitialLoad = false) => {
+    const processAuthStateChange = async (sessionUser) => {
       if (!isMounted) return;
-
-      // Só mostra loading após a inicialização, exceto na primeira carga
-      if (!isInitialLoad && initialized) {
-        setLoading(true);
-      }
 
       setUser(sessionUser);
       if (sessionUser) {
@@ -59,49 +56,36 @@ export const AuthProvider = ({ children }) => {
       } else {
         setProfile(null);
       }
-      
+
       if (isMounted) {
         setLoading(false);
-        if (isInitialLoad) {
-          setInitialized(true);
-        }
+        setInitialized(true);  // ← sempre finaliza a inicialização
       }
     };
 
     const initializeAuth = async () => {
       try {
-        // Timeout de segurança para evitar loading infinito
-        initializationTimeout = setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           if (isMounted && !initialized) {
-            console.warn('Auth initialization timeout - setting as initialized');
+            console.warn('Auth initialization taking too long, forcing completion');
             setUser(null);
             setProfile(null);
             setLoading(false);
             setInitialized(true);
           }
-        }, 5000); // 5 segundos de timeout
+        }, 3000);
 
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
+        clearTimeout(timeoutId);
+
         if (error) {
           console.error("Error getting session:", error);
-          // Mesmo com erro, inicializa para não travar
-          if (isMounted) {
-            setUser(null);
-            setProfile(null);
-            setLoading(false);
-            setInitialized(true);
-          }
-          return;
         }
 
-        // Limpa o timeout pois conseguiu obter a sessão
-        if (initializationTimeout) {
-          clearTimeout(initializationTimeout);
+        if (isMounted) {
+          await processAuthStateChange(session?.user ?? null);
         }
-
-        await processAuthStateChange(session?.user ?? null, true);
-        
       } catch (error) {
         console.error("Initialization error:", error);
         if (isMounted) {
@@ -113,128 +97,83 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
-        
-        console.log('Auth state change:', event, session?.user?.id);
-        
-        // Eventos que devem resetar o estado de loading
-        const loadingEvents = ['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'];
-        
-        if (loadingEvents.includes(event)) {
-          await processAuthStateChange(session?.user ?? null, false);
-        } else {
-          // Para outros eventos, apenas atualiza o user sem loading
-          setUser(session?.user ?? null);
+    const setupAuthListener = () => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!isMounted) return;
+
+          console.log('Auth event:', event);
+
+          if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'].includes(event)) {
+            await processAuthStateChange(session?.user ?? null);
+          }
         }
-      }
-    );
+      );
 
-    // Inicializar
+      authSubscription = subscription;
+    };
+
+    setupAuthListener();
     initializeAuth();
-
-    // Listener para mudanças na aba (quando volta o foco)
-    const handleVisibilityChange = () => {
-      if (!document.hidden && initialized) {
-        // Quando a aba volta ao foco, revalida a sessão
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (isMounted) {
-            const currentUser = session?.user ?? null;
-            if (currentUser?.id !== user?.id) {
-              // Só atualiza se o usuário realmente mudou
-              processAuthStateChange(currentUser, false);
-            }
-          }
-        }).catch(error => {
-          console.error('Error revalidating session on tab focus:', error);
-        });
-      }
-    };
-
-    // Listener para storage changes (sincronização entre abas)
-    const handleStorageChange = (e) => {
-      if (e.key === 'supabase.auth.token' && initialized) {
-        // Token mudou em outra aba, revalida sessão
-        setTimeout(() => {
-          if (isMounted) {
-            supabase.auth.getSession().then(({ data: { session } }) => {
-              const currentUser = session?.user ?? null;
-              if (currentUser?.id !== user?.id) {
-                processAuthStateChange(currentUser, false);
-              }
-            }).catch(error => {
-              console.error('Error handling storage change:', error);
-            });
-          }
-        }, 100); // Pequeno delay para garantir que o Supabase processou a mudança
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       isMounted = false;
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
+      if (authSubscription) {
+        authSubscription.unsubscribe();
       }
-      if (authListener && authListener.subscription) {
-        authListener.subscription.unsubscribe();
-      }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('storage', handleStorageChange);
     };
-  }, [fetchUserProfile, user?.id, initialized]);
+  }, [fetchUserProfile]);
+
+  // 🔄 Força verificação da sessão ao focar na aba
+  useEffect(() => {
+    const onFocus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id !== user?.id) {
+        console.log("↻ Sessão revalidada ao focar na aba");
+        await fetchUserProfile(session?.user?.id);
+        setUser(session?.user ?? null);
+      }
+    };
+
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user, fetchUserProfile]);
 
   const value = {
     signUp: async (data) => {
-      setLoading(true);
+      const { email, password, options } = data;
       try {
-        const { email, password, options } = data;
         const result = await supabase.auth.signUp({ email, password, options });
-        if(result.error) setLoading(false);
         return result;
       } catch (error) {
-        setLoading(false);
+        console.error('SignUp error:', error);
         throw error;
       }
     },
+
     signIn: async (data) => {
-      setLoading(true);
       try {
         const result = await supabase.auth.signInWithPassword(data);
-        if (result.error) { 
-          setLoading(false);
-        }
         return result;
       } catch (error) {
-        setLoading(false);
+        console.error('SignIn error:', error);
         throw error;
       }
     },
+
     signOut: async () => {
-      setLoading(true);
       try {
         const { error } = await supabase.auth.signOut();
-        if (error) { 
-          setLoading(false);
-        }
         return { error };
       } catch (error) {
-        setLoading(false);
+        console.error('SignOut error:', error);
         throw error;
       }
     },
-    user,
-    profile,
-    loading,
-    initialized,
-    isAuthReady: initialized && !loading,
+
     updateUserProfile: async (updatedProfileData) => {
       if (!user) return { error: { message: "User not authenticated" } };
-      setLoading(true);
+
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -242,29 +181,25 @@ export const AuthProvider = ({ children }) => {
           .eq('id', user.id)
           .select()
           .single();
-        
+
         if (!error && data) {
-          setProfile(data); 
+          setProfile(data);
         } else if (error) {
           console.error("Error updating profile:", error.message);
         }
+
         return { data, error };
       } catch (error) {
+        console.error('UpdateProfile error:', error);
         return { error };
-      } finally {
-        setLoading(false);
       }
     },
-    // Função para forçar revalidação manual se necessário
-    revalidateSession: async () => {
-      if (!initialized) return;
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        await processAuthStateChange(session?.user ?? null, false);
-      } catch (error) {
-        console.error('Error revalidating session:', error);
-      }
-    }
+
+    user,
+    profile,
+    loading,
+    initialized,
+    isAuthReady: initialized && !loading
   };
 
   return (
