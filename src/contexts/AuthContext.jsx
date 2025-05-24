@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
@@ -9,188 +9,171 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
-  const fetchUserProfile = useCallback(async (userId) => {
+  // 🔥 Função para buscar o perfil no banco
+  const fetchUserProfile = async (userId) => {
     if (!userId) {
       setProfile(null);
       return null;
     }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
-      if (error) {
-        if (error.code === 'PGRST116') {
-          setProfile(null); 
-        } else {
-          console.error('Error fetching profile:', error.message);
-          setProfile(null);
-        }
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar perfil:', error.message);
+        setProfile(null);
         return null;
       }
+
       setProfile(data);
       return data;
     } catch (e) {
-      console.error('Exception fetching profile:', e.message);
+      console.error('Exceção ao buscar perfil:', e.message);
       setProfile(null);
       return null;
     }
-  }, []);
+  };
 
   useEffect(() => {
     let isMounted = true;
-    let authSubscription = null;
-
-    const processAuthStateChange = async (sessionUser, isInitialLoad = false) => {
-      if (!isMounted) return;
-
-      setUser(sessionUser);
-      if (sessionUser) {
-        await fetchUserProfile(sessionUser.id);
-      } else {
-        setProfile(null);
-      }
-      
-      if (isMounted) {
-        setLoading(false);
-        if (isInitialLoad) {
-          setInitialized(true);
-        }
-      }
-    };
 
     const initializeAuth = async () => {
       try {
-        // Timeout simples para evitar loading infinito
-        const timeoutId = setTimeout(() => {
-          if (isMounted && !initialized) {
-            console.warn('Auth initialization taking too long, forcing completion');
-            setUser(null);
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("Erro ao obter sessão:", sessionError.message);
+        }
+
+        const currentUser = session?.user ?? null;
+
+        if (isMounted) {
+          setUser(currentUser);
+
+          if (currentUser) {
+            await fetchUserProfile(currentUser.id);
+          } else {
             setProfile(null);
-            setLoading(false);
-            setInitialized(true);
           }
-        }, 3000);
 
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        // Limpa o timeout se conseguiu obter a sessão
-        clearTimeout(timeoutId);
-        
-        if (error) {
-          console.error("Error getting session:", error);
-        }
-
-        if (isMounted) {
-          await processAuthStateChange(session?.user ?? null, true);
-        }
-        
-      } catch (error) {
-        console.error("Initialization error:", error);
-        if (isMounted) {
-          setUser(null);
-          setProfile(null);
           setLoading(false);
-          setInitialized(true);
+        }
+      } catch (e) {
+        console.error("Erro na inicialização da autenticação:", e.message);
+        if (isMounted) {
+          setLoading(false);
         }
       }
     };
 
-    // Configurar listener de mudanças de auth - APENAS UMA VEZ
-    const setupAuthListener = () => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (!isMounted) return;
-          
-          console.log('Auth event:', event);
-          
-          // Só processa eventos importantes
-          if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'].includes(event)) {
-            await processAuthStateChange(session?.user ?? null, false);
-          }
-        }
-      );
-      
-      authSubscription = subscription;
-    };
+    // 🔥 Listener para mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
 
-    // Inicializar tudo
-    setupAuthListener();
+        console.log('🔄 Alteração no estado de auth:', event);
+
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+
+        if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) {
+          if (currentUser) {
+            await fetchUserProfile(currentUser.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setProfile(null);
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    );
+
+    // 🔥 Inicializar
     initializeAuth();
 
     return () => {
       isMounted = false;
-      if (authSubscription) {
-        authSubscription.unsubscribe();
-      }
+      subscription?.unsubscribe();
     };
-  }, [fetchUserProfile]); // Removemos dependências desnecessárias
+  }, []);
+
+  // 🔑 Funções de autenticação
+  const signUp = async ({ email, password, options }) => {
+    return supabase.auth.signUp({ email, password, options });
+  };
+
+  const signIn = async ({ email, password }) => {
+    try {
+      setLoading(true);
+      const result = await supabase.auth.signInWithPassword({ email, password });
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      return { error };
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUserProfile = async (updatedProfileData) => {
+    if (!user) return { error: { message: "Usuário não autenticado" } };
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updatedProfileData)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        setProfile(data);
+      }
+
+      return { data, error };
+    } catch (error) {
+      return { error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      return await fetchUserProfile(user.id);
+    }
+    return null;
+  };
 
   const value = {
-    signUp: async (data) => {
-      const { email, password, options } = data;
-      try {
-        const result = await supabase.auth.signUp({ email, password, options });
-        return result;
-      } catch (error) {
-        console.error('SignUp error:', error);
-        throw error;
-      }
-    },
-    
-    signIn: async (data) => {
-      try {
-        const result = await supabase.auth.signInWithPassword(data);
-        return result;
-      } catch (error) {
-        console.error('SignIn error:', error);
-        throw error;
-      }
-    },
-    
-    signOut: async () => {
-      try {
-        const { error } = await supabase.auth.signOut();
-        return { error };
-      } catch (error) {
-        console.error('SignOut error:', error);
-        throw error;
-      }
-    },
-    
-    updateUserProfile: async (updatedProfileData) => {
-      if (!user) return { error: { message: "User not authenticated" } };
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .update(updatedProfileData)
-          .eq('id', user.id)
-          .select()
-          .single();
-        
-        if (!error && data) {
-          setProfile(data); 
-        } else if (error) {
-          console.error("Error updating profile:", error.message);
-        }
-        
-        return { data, error };
-      } catch (error) {
-        console.error('UpdateProfile error:', error);
-        return { error };
-      }
-    },
-    
     user,
     profile,
     loading,
-    initialized,
-    isAuthReady: initialized && !loading
+    signUp,
+    signIn,
+    signOut,
+    updateUserProfile,
+    refreshProfile,
   };
 
   return (
