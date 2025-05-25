@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,8 +15,8 @@ import { User, LogOut, Settings, Home, Info, Phone } from 'lucide-react';
 
 const Navbar = () => {
   const { user, profile, initialized, loading, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  // Enquanto não inicializar, mostra skeleton simples
   if (!initialized) {
     return (
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,6 +35,7 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      navigate('/login'); // 🔥 Redireciona após logout
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
@@ -44,11 +46,11 @@ const Navbar = () => {
       <div className="container flex h-14 items-center">
         {/* Logo/Brand */}
         <div className="mr-4 hidden md:flex">
-          <a href="/" className="mr-6 flex items-center space-x-2">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
             <span className="hidden font-bold sm:inline-block">
               MeuApp
             </span>
-          </a>
+          </Link>
         </div>
 
         {/* Navigation Menu */}
@@ -62,9 +64,9 @@ const Navbar = () => {
                   <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                     <li className="row-span-3">
                       <NavigationMenuLink asChild>
-                        <a
+                        <Link
                           className="flex h-full w-full select-none flex-col justify-end rounded-lg bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                          href="/"
+                          to="/"
                         >
                           <Home className="h-6 w-6" />
                           <div className="mb-2 mt-4 text-lg font-medium">
@@ -73,13 +75,13 @@ const Navbar = () => {
                           <p className="text-sm leading-tight text-muted-foreground">
                             Aplicação moderna com autenticação segura.
                           </p>
-                        </a>
+                        </Link>
                       </NavigationMenuLink>
                     </li>
                     <li>
                       <NavigationMenuLink asChild>
-                        <a
-                          href="/sobre"
+                        <Link
+                          to="/sobre"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           <div className="text-sm font-medium leading-none flex items-center gap-2">
@@ -89,13 +91,13 @@ const Navbar = () => {
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Conheça nossa história e missão.
                           </p>
-                        </a>
+                        </Link>
                       </NavigationMenuLink>
                     </li>
                     <li>
                       <NavigationMenuLink asChild>
-                        <a
-                          href="/contato"
+                        <Link
+                          to="/contato"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           <div className="text-sm font-medium leading-none flex items-center gap-2">
@@ -105,7 +107,7 @@ const Navbar = () => {
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Entre em contato conosco.
                           </p>
-                        </a>
+                        </Link>
                       </NavigationMenuLink>
                     </li>
                   </ul>
@@ -114,7 +116,6 @@ const Navbar = () => {
 
               {/* Área de autenticação */}
               {user ? (
-                // Menu do usuário logado
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="flex items-center gap-2">
                     <User className="h-4 w-4" />
@@ -128,8 +129,8 @@ const Navbar = () => {
                     <ul className="grid w-[200px] gap-2 p-2">
                       <li>
                         <NavigationMenuLink asChild>
-                          <a
-                            href="/perfil"
+                          <Link
+                            to="/perfil"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
                             <div className="text-sm font-medium leading-none flex items-center gap-2">
@@ -139,7 +140,7 @@ const Navbar = () => {
                             <p className="text-xs text-muted-foreground">
                               Gerencie suas informações
                             </p>
-                          </a>
+                          </Link>
                         </NavigationMenuLink>
                       </li>
                       <li>
@@ -158,26 +159,29 @@ const Navbar = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ) : (
-                // Botões de login/cadastro para usuários não logados
                 <>
                   <NavigationMenuItem>
-                    <a
-                      href="/login"
-                      className={cn(navigationMenuTriggerStyle())}
-                    >
-                      Entrar
-                    </a>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to="/login"
+                        className={cn(navigationMenuTriggerStyle())}
+                      >
+                        Entrar
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <a
-                      href="/cadastro"
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        "bg-primary text-primary-foreground hover:bg-primary/90"
-                      )}
-                    >
-                      Cadastrar
-                    </a>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to="/cadastro"
+                        className={cn(
+                          navigationMenuTriggerStyle(),
+                          'bg-primary text-primary-foreground hover:bg-primary/90'
+                        )}
+                      >
+                        Cadastrar
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
                 </>
               )}
