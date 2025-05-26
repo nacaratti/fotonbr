@@ -1,5 +1,7 @@
 ## FotonBR
 
+---
+
 FotonBR é uma plataforma web colaborativa voltada para pesquisadores da área de **fotônica** no Brasil. O objetivo principal é conectar laboratórios, pesquisadores e estudantes, promovendo a troca de conhecimento, o compartilhamento de recursos e a divulgação de oportunidades acadêmicas e científicas.
 
 🔗 Acesse o app em produção: [https://fotonbr.vercel.app](https://fotonbr.vercel.app)
