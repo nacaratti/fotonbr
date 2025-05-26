@@ -47,7 +47,11 @@ const Header = () => {
     <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-2" onClick={() => setMobileMenuOpen(false)}>
+<<<<<<< HEAD
           
+=======
+          <Shapes className="h-8 w-8 text-primary" />
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
           <span className="font-bold text-xl text-primary">fotonBR</span>
         </Link>
         
@@ -81,8 +85,13 @@ const Header = () => {
               <SheetContent side="right" className="w-[280px] sm:w-[320px]">
                 <SheetHeader className="mb-6">
                   <SheetTitle className="flex items-center">
+<<<<<<< HEAD
                      
                     <span className="font-bold text-lg text-primary">fotonBR</span>
+=======
+                     <Shapes className="h-7 w-7 mr-2 text-primary" />
+                    <span className="font-bold text-lg text-primary">fotonBR Menu</span>
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col space-y-3">

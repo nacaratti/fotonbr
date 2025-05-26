@@ -53,9 +53,15 @@ const NewsArticleCard = ({ title, source, date, link, delay, imagePlaceholder })
 
 const HomePage = () => {
   const features = [
+<<<<<<< HEAD
     { icon: <Aperture size={28} />, title: "Equipamentos Multiusuário", description: "Explore uma vasta gama de equipamentos multiusuário disponíveis para pesquisa e desenvolvimento." },
     { icon: <Users size={28} />, title: "Projetos de pesquisa", description: "Descubra e colabore em projetos de ponta na área de fotônica." },
     { icon: <Library size={28} />, title: "Informações sobre chamadas públicas", description: "Acesse às principais oportunidades de fomento à pesquisa na áera de ciência e tecnologia." },
+=======
+    { icon: <Aperture size={28} />, title: "Equipamentos Fotônicos", description: "Explore uma vasta gama de equipamentos fotônicos disponíveis para pesquisa e desenvolvimento." },
+    { icon: <Users size={28} />, title: "Projetos Inovadores", description: "Descubra e colabore em projetos de ponta na área de fotônica." },
+    { icon: <Library size={28} />, title: "Repositório de Conhecimento", description: "Acesse publicações, teses e materiais didáticos sobre fotônica." },
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
     { icon: <Zap size={28} />, title: "Plataforma Colaborativa", description: "Conecte-se com pesquisadores, instituições e empresas do setor." },
     { icon: <MessageSquare size={28} />, title: "Fórum Interativo", description: "Participe de discussões, tire dúvidas e compartilhe suas ideias com a comunidade." },
     { icon: <Newspaper size={28} />, title: "Newsletter", description: "Mantenha-se atualizado com as últimas notícias, eventos e oportunidades na fotônica." },
@@ -78,12 +84,20 @@ const HomePage = () => {
       >
         <div className="container mx-auto px-4 text-center">
           <motion.h1 
+<<<<<<< HEAD
             className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-forefround"
+=======
+            className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-500 to-purple-600"
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
+<<<<<<< HEAD
             Bem-vindo ao <span className="text-primary">fotonBR</span>
+=======
+            Bem-vindo ao fotonBR
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
           </motion.h1>
           <motion.p 
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-3xl mx-auto"
@@ -91,7 +105,11 @@ const HomePage = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.4 }}
           >
+<<<<<<< HEAD
             Sua plataforma para pesquisa de equipamentos multiusuário, projetos, conhecimento e colaboração na área de fotônica no Brasil.
+=======
+            Sua plataforma central para equipamentos, projetos, conhecimento e colaboração no ecossistema brasileiro de fotônica.
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
           </motion.p>
           <motion.div 
             className="space-y-4 sm:space-y-0 sm:space-x-4"
@@ -112,9 +130,15 @@ const HomePage = () => {
       {/* Features Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
+<<<<<<< HEAD
           <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-foreground">Conectando a sociedade acadêmica</h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
             O fotonBR visa integrar e fortalecer a comunidade acadêmica na área de fotônica, facilitando o acesso a recursos e promovendo a colaboração.
+=======
+          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-foreground">Conectando a Fotônica Brasileira</h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            O fotonBR visa integrar e fortalecer a comunidade fotônica, facilitando o acesso a recursos e promovendo a colaboração.
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -127,7 +151,11 @@ const HomePage = () => {
       {/* News Section */}
       <section className="py-16 md:py-24 bg-muted/20">
         <div className="container mx-auto px-4">
+<<<<<<< HEAD
           <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-foreground">Últimas notícias na área de fotônica</h2>
+=======
+          <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-foreground">Notícias e Destaques em Fotônica</h2>
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
             Fique por dentro das últimas novidades e avanços no mundo da fotônica.
           </p>
@@ -194,11 +222,19 @@ const HomePage = () => {
             >
               <h3 className="text-2xl md:text-3xl font-semibold mb-4 text-foreground">Inovação e Colaboração em Foco</h3>
               <p className="text-muted-foreground mb-4">
+<<<<<<< HEAD
                 O fotonBR é um hub dinâmico para impulsionar a pesquisa e o desenvolvimento tecnológico na área de fotônica no Brasil.
                 Conectamos pesquisadores à recursos essenciais de sua pesquisa.
               </p>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-center"><Zap size={18} className="mr-2 text-primary"/> Acesso facilitado aos equipamentos multiusuário para sua pesquisa.</li>
+=======
+                O fotonBR é mais do que um catálogo; é um hub dinâmico para impulsionar a pesquisa e o desenvolvimento tecnológico em fotônica no Brasil.
+                Conectamos mentes brilhantes a recursos essenciais.
+              </p>
+              <ul className="space-y-2 text-muted-foreground">
+                <li className="flex items-center"><Zap size={18} className="mr-2 text-primary"/> Acesso facilitado a infraestrutura de pesquisa.</li>
+>>>>>>> 6a1f09741025142e9e3b717a2ee5f976f809f8c2
                 <li className="flex items-center"><Users size={18} className="mr-2 text-primary"/> Formação de parcerias estratégicas.</li>
                 <li className="flex items-center"><Library size={18} className="mr-2 text-primary"/> Disseminação de conhecimento e melhores práticas.</li>
               </ul>
