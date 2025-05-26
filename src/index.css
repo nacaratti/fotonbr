@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    /* Azul mais escuro - Ex: Tailwind's blue-700 (217 91% 60%) ou blue-600 (217 91% 59%) */
+    /* Usando um tom como HSL 220, 70%, 45% para um azul mais escuro e vibrante */
+    --primary: 220 70% 45%; 
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 70% 45%; /* Mesmo que o primary */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    /* Mantendo o mesmo primário para bom contraste no escuro */
+    --primary: 220 70% 55%; /* Um pouco mais claro para melhor visibilidade no escuro */
+    --primary-foreground: 210 20% 98%; /* Já é claro */
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 220 70% 55%; /* Mesmo que o primary (dark) */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Adicionando estilos para scrollbar com glassmorphism sutil */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background) / 0.5);
+  border-radius: 10px;
+  margin-block: 2px; /* Adiciona uma pequena margem */
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.7);
+  border-radius: 10px;
+  border: 3px solid transparent; /* Cria efeito de "padding" */
+  background-clip: content-box; /* Faz o border ser transparente em relação ao thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 1);
+}
+
+/* Para Firefox */
+/* A estilização da scrollbar no Firefox é mais limitada */
+/* Estas são apenas sugestões e podem não ter o mesmo efeito visual */
+* {
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: hsl(var(--primary) / 0.7) hsl(var(--background) / 0.5); /* thumb and track */
+}
