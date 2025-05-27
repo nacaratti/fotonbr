@@ -1,60 +1,70 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
-import { motion } from 'framer-motion';
-import { Mail, Send } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient'; // Importa seu cliente Supabase
 
 const NewsletterPage = () => {
-  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (title, description, variant = 'default') => {
+    setToast({ title, description, variant });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      toast({
-        title: 'Erro de Validação',
-        description: 'Por favor, insira um endereço de e-mail válido.',
-        variant: 'destructive',
-      });
+    
+    if (!email || !isValidEmail(email)) {
+      showToast(
+        'Erro de Validação',
+        'Por favor, insira um endereço de e-mail válido.',
+        'destructive'
+      );
       return;
     }
 
     setLoading(true);
 
     try {
+      // Inserir no Supabase usando seu cliente existente
       const { data, error } = await supabase
-        .from('newsletter_subscriptions')
-        .insert([{ email: email.toLowerCase() }])
+        .from('subs')
+        .insert([{ 
+          email: email.toLowerCase().trim(),
+          source: 'website'
+        }])
         .select();
 
       if (error) {
         if (error.code === '23505') { // Unique constraint violation
-          toast({
-            title: 'Já Inscrito',
-            description: 'Este e-mail já está cadastrado em nossa newsletter.',
-            variant: 'default',
-          });
+          showToast(
+            'Já Inscrito',
+            'Este e-mail já está cadastrado em nossa newsletter.',
+            'default'
+          );
         } else {
           throw error;
         }
       } else if (data) {
-        toast({
-          title: 'Inscrição Confirmada!',
-          description: 'Obrigado por se inscrever na newsletter FotonBR.',
-        });
+        showToast(
+          'Inscrição Confirmada!',
+          'Obrigado por se inscrever na newsletter FotonBR.'
+        );
         setEmail('');
       }
     } catch (error) {
       console.error('Erro ao inscrever e-mail:', error);
-      toast({
-        title: 'Erro na Inscrição',
-        description: 'Ocorreu um erro ao tentar inscrever seu e-mail. Por favor, tente novamente.',
-        variant: 'destructive',
-      });
+      showToast(
+        'Erro na Inscrição',
+        'Ocorreu um erro ao tentar inscrever seu e-mail. Por favor, tente novamente.',
+        'destructive'
+      );
     } finally {
       setLoading(false);
     }
@@ -62,50 +72,69 @@ const NewsletterPage = () => {
 
   return (
     <div className="container mx-auto py-12 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-12"
-      >
-        <Mail className="h-16 w-16 text-primary mx-auto mb-4" />
-        <h1 className="text-4xl font-bold tracking-tight text-primary">
+      {/* Toast personalizado */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className={`p-4 rounded-lg shadow-lg border max-w-sm ${
+            toast.variant === 'destructive' 
+              ? 'bg-red-50 border-red-200 text-red-800' 
+              : 'bg-green-50 border-green-200 text-green-800'
+          }`}>
+            <div className="flex items-start gap-3">
+              {toast.variant === 'destructive' ? (
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              ) : (
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              )}
+              <div>
+                <div className="font-semibold text-sm">{toast.title}</div>
+                <div className="text-sm mt-1 opacity-90">{toast.description}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="text-center mb-12">
+        <Mail className="h-16 w-16 text-blue-600 mx-auto mb-4" />
+        <h1 className="text-4xl font-bold tracking-tight text-blue-600">
           Newsletter FotonBR
         </h1>
-        <p className="text-xl text-muted-foreground mt-2 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-600 mt-2 max-w-2xl mx-auto">
           Mantenha-se atualizado com as últimas novidades, avanços e oportunidades no campo da fotônica no Brasil. Inscreva-se para receber nosso boletim mensal.
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        <Card className="max-w-lg mx-auto shadow-xl border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center text-foreground">Inscreva-se para Novidades</CardTitle>
-            <CardDescription className="text-center">
-              Não perca nenhuma atualização importante do setor.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Digite seu melhor e-mail"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="pl-10 h-12 text-base"
-                  aria-label="Endereço de e-mail para newsletter"
-                />
-              </div>
-              <Button type="submit" className="w-full h-12 text-lg bg-primary hover:bg-primary/90" disabled={loading}>
+      <div className="max-w-lg mx-auto shadow-xl border border-blue-200 rounded-lg">
+        <div className="p-6 border-b">
+          <h2 className="text-2xl text-center font-semibold text-gray-900">Inscreva-se para Novidades</h2>
+          <p className="text-center text-gray-600 mt-1">
+            Não perca nenhuma atualização importante do setor.
+          </p>
+        </div>
+        <div className="p-6">
+          <div className="space-y-6">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                id="email"
+                type="email"
+                placeholder="Digite seu melhor e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                className="pl-10 h-12 text-base w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                aria-label="Endereço de e-mail para newsletter"
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
+              />
+            </div>
+            <button 
+              onClick={handleSubmit}
+              className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" 
+              disabled={loading}
+            >
+              <div className="flex items-center justify-center">
                 {loading ? (
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -115,34 +144,42 @@ const NewsletterPage = () => {
                   <Send className="mr-2 h-5 w-5" />
                 )}
                 {loading ? 'Inscrevendo...' : 'Inscrever-se Agora'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </motion.div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <motion.section 
-        className="mt-16 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-      >
-        <h2 className="text-2xl font-semibold text-foreground mb-4">Por que se inscrever?</h2>
-        <div className="grid md:grid-cols-3 gap-6 text-muted-foreground">
-          <div className="p-4 border rounded-lg bg-secondary/50">
-            <h3 className="font-semibold text-primary mb-1">Avanços Científicos</h3>
+      <section className="mt-16 text-center">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Por que se inscrever?</h2>
+        <div className="grid md:grid-cols-3 gap-6 text-gray-600">
+          <div className="p-4 border rounded-lg bg-gray-50">
+            <h3 className="font-semibold text-blue-600 mb-1">Avanços Científicos</h3>
             <p className="text-sm">Receba em primeira mão as descobertas dos laboratórios brasileiros.</p>
           </div>
-          <div className="p-4 border rounded-lg bg-secondary/50">
-            <h3 className="font-semibold text-primary mb-1">Eventos e Chamadas</h3>
+          <div className="p-4 border rounded-lg bg-gray-50">
+            <h3 className="font-semibold text-blue-600 mb-1">Eventos e Chamadas</h3>
             <p className="text-sm">Fique por dentro de congressos, workshops e editais de fomento.</p>
           </div>
-          <div className="p-4 border rounded-lg bg-secondary/50">
-            <h3 className="font-semibold text-primary mb-1">Oportunidades</h3>
+          <div className="p-4 border rounded-lg bg-gray-50">
+            <h3 className="font-semibold text-blue-600 mb-1">Oportunidades</h3>
             <p className="text-sm">Informações sobre vagas de pesquisa, bolsas e colaborações.</p>
           </div>
         </div>
-      </motion.section>
+      </section>
+
+      {/* Informação sobre onde os dados estão sendo salvos */}
+      <div className="mt-8 text-center">
+        <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+          <span className="text-sm text-blue-800">
+            Dados salvos no Supabase → Tabela: <code className="bg-blue-100 px-1 rounded">subs</code>
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Conectado via supabaseclient.jsx
+        </p>
+      </div>
     </div>
   );
 };
