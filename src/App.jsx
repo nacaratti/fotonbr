@@ -13,6 +13,7 @@ import UserProfilePage from '@/pages/UserProfilePage';
 import LoginPage from '@/pages/LoginPage';
 import SignupPage from '@/pages/SignupPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import Obrigado from '@/pages/Obrigado';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/forum/post/:id" element={<ForumPostDetailsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/obrigado" element={<Obrigado />} />
 
         {/* 🔒 Rotas protegidas (usuário autenticado) */}
         <Route

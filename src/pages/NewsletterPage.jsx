@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; // Importa seu cliente Supabase
+import { useNavigate } from 'react-router-dom';
 
 const NewsletterPage = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const navigate = useNavigate();
 
   const showToast = (title, description, variant = 'default') => {
     setToast({ title, description, variant });
@@ -52,10 +54,7 @@ const NewsletterPage = () => {
           throw error;
         }
       } else if (data) {
-        showToast(
-          'Inscrição Confirmada!',
-          'Obrigado por se inscrever na newsletter fotonBR.'
-        );
+        navigate('/obrigado'); // Redireciona para página de agradecimento
         setEmail('');
       }
     } catch (error) {
