@@ -54,7 +54,7 @@ const NewsletterPage = () => {
       } else if (data) {
         showToast(
           'Inscrição Confirmada!',
-          'Obrigado por se inscrever na newsletter FotonBR.'
+          'Obrigado por se inscrever na newsletter fotonBR.'
         );
         setEmail('');
       }
@@ -98,10 +98,10 @@ const NewsletterPage = () => {
       <div className="text-center mb-12">
         <Mail className="h-16 w-16 text-blue-600 mx-auto mb-4" />
         <h1 className="text-4xl font-bold tracking-tight text-blue-600">
-          Newsletter FotonBR
+          Newsletter fotonBR
         </h1>
         <p className="text-xl text-gray-600 mt-2 max-w-2xl mx-auto">
-          Mantenha-se atualizado com as últimas novidades, avanços e oportunidades no campo da fotônica no Brasil. Inscreva-se para receber nosso boletim mensal.
+          Mantenha-se atualizado com as últimas novidades, avanços e oportunidades no campo da fotônica no Brasil. Inscreva-se gratuitamente para receber nosso boletim mensal.
         </p>
       </div>
 
@@ -168,18 +168,6 @@ const NewsletterPage = () => {
         </div>
       </section>
 
-      {/* Informação sobre onde os dados estão sendo salvos */}
-      <div className="mt-8 text-center">
-        <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-          <span className="text-sm text-blue-800">
-            Dados salvos no Supabase → Tabela: <code className="bg-blue-100 px-1 rounded">subs</code>
-          </span>
-        </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Conectado via supabaseclient.jsx
-        </p>
-      </div>
     </div>
   );
 };
