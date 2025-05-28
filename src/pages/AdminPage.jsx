@@ -20,7 +20,7 @@ const AdminPage = () => {
         <ShieldCheck className="h-10 w-10 mr-3 text-primary" />
         <h1 className="text-4xl font-bold tracking-tight">Painel Administrativo</h1>
       </div>
-      
+
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6">
           <TabsTrigger value="dashboard" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -33,7 +33,7 @@ const AdminPage = () => {
             <Lightbulb className="mr-2 h-5 w-5" /> Aprovar Projetos
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="dashboard" className="focus-visible:ring-0 focus-visible:ring-offset-0">
           <AdminDashboardTab />
         </TabsContent>

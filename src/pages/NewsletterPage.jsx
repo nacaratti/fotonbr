@@ -95,8 +95,8 @@ const NewsletterPage = () => {
       )}
 
       <div className="text-center mb-12">
-        <Mail className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-        <h1 className="text-4xl font-bold tracking-tight text-blue-600">
+        <Mail className="h-16 w-16 text-primary mx-auto mb-4" />
+        <h1 className="text-4xl font-bold tracking-tight text-primary">
           Newsletter fotonBR
         </h1>
         <p className="text-xl text-gray-600 mt-2 max-w-2xl mx-auto">
@@ -104,9 +104,9 @@ const NewsletterPage = () => {
         </p>
       </div>
 
-      <div className="max-w-lg mx-auto shadow-xl border border-blue-200 rounded-lg">
+      <div className="max-w-lg mx-auto shadow-xl border border-border rounded-lg">
         <div className="p-6 border-b">
-          <h2 className="text-2xl text-center font-semibold text-gray-900">Inscreva-se para Novidades</h2>
+          <h2 className="text-2xl text-center font-semibold text-foreground">Inscreva-se para Novidades</h2>
           <p className="text-center text-gray-600 mt-1">
             Não perca nenhuma atualização importante do setor.
           </p>
@@ -114,7 +114,7 @@ const NewsletterPage = () => {
         <div className="p-6">
           <div className="space-y-6">
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
               <input
                 id="email"
                 type="email"
