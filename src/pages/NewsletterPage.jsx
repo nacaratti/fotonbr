@@ -99,7 +99,7 @@ const NewsletterPage = () => {
         <h1 className="text-4xl font-bold tracking-tight text-primary">
           Newsletter fotonBR
         </h1>
-        <p className="text-xl text-gray-600 mt-2 max-w-2xl mx-auto">
+        <p className="text-xl text-muted-foreground mt-2 max-w-2xl mx-auto">
           Mantenha-se atualizado com as últimas novidades, avanços e oportunidades no campo da fotônica no Brasil. Inscreva-se gratuitamente para receber nosso boletim mensal.
         </p>
       </div>
@@ -107,7 +107,7 @@ const NewsletterPage = () => {
       <div className="max-w-lg mx-auto shadow-xl border border-border rounded-lg">
         <div className="p-6 border-b">
           <h2 className="text-2xl text-center font-semibold text-foreground">Inscreva-se para Novidades</h2>
-          <p className="text-center text-gray-600 mt-1">
+          <p className="text-center text-muted-foreground mt-1">
             Não perca nenhuma atualização importante do setor.
           </p>
         </div>
@@ -150,17 +150,17 @@ const NewsletterPage = () => {
       </div>
 
       <section className="mt-16 text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Por que se inscrever?</h2>
-        <div className="grid md:grid-cols-3 gap-6 text-gray-600">
-          <div className="p-4 border rounded-lg bg-gray-50">
+        <h2 className="text-2xl font-semibold text-foreground mb-4">Por que se inscrever?</h2>
+        <div className="grid md:grid-cols-3 gap-6 text-muted-foreground">
+          <div className="p-4 border rounded-lg bg-background">
             <h3 className="font-semibold text-blue-600 mb-1">Avanços Científicos</h3>
             <p className="text-sm">Receba em primeira mão as descobertas dos laboratórios brasileiros.</p>
           </div>
-          <div className="p-4 border rounded-lg bg-gray-50">
+          <div className="p-4 border rounded-lg bg-background">
             <h3 className="font-semibold text-blue-600 mb-1">Eventos e Chamadas</h3>
             <p className="text-sm">Fique por dentro de congressos, workshops e editais de fomento.</p>
           </div>
-          <div className="p-4 border rounded-lg bg-gray-50">
+          <div className="p-4 border rounded-lg bg-background">
             <h3 className="font-semibold text-blue-600 mb-1">Oportunidades</h3>
             <p className="text-sm">Informações sobre vagas de pesquisa, bolsas e colaborações.</p>
           </div>
