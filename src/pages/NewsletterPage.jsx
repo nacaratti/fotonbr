@@ -130,7 +130,7 @@ const NewsletterPage = () => {
             </div>
             <button 
               onClick={handleSubmit}
-              className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" 
+              className="w-full h-12 text-lg bg-primary hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" 
               disabled={loading}
             >
               <div className="flex items-center justify-center">
@@ -153,15 +153,15 @@ const NewsletterPage = () => {
         <h2 className="text-2xl font-semibold text-foreground mb-4">Por que se inscrever?</h2>
         <div className="grid md:grid-cols-3 gap-6 text-muted-foreground">
           <div className="p-4 border rounded-lg bg-background">
-            <h3 className="font-semibold text-blue-600 mb-1">Avanços Científicos</h3>
+            <h3 className="font-semibold text-primary mb-1">Avanços Científicos</h3>
             <p className="text-sm">Receba em primeira mão as descobertas dos laboratórios brasileiros.</p>
           </div>
           <div className="p-4 border rounded-lg bg-background">
-            <h3 className="font-semibold text-blue-600 mb-1">Eventos e Chamadas</h3>
+            <h3 className="font-semibold text-primary mb-1">Eventos e Chamadas</h3>
             <p className="text-sm">Fique por dentro de congressos, workshops e editais de fomento.</p>
           </div>
           <div className="p-4 border rounded-lg bg-background">
-            <h3 className="font-semibold text-blue-600 mb-1">Oportunidades</h3>
+            <h3 className="font-semibold text-primary mb-1">Oportunidades</h3>
             <p className="text-sm">Informações sobre vagas de pesquisa, bolsas e colaborações.</p>
           </div>
         </div>
